@@ -1,12 +1,13 @@
 import pygame
 
-from alien_invasion import AlienInvasion
+
+# import alien_invasion
 
 
 class Ship:
     """管理飞船的类"""
 
-    def __init__(self, ai_game: AlienInvasion):
+    def __init__(self, ai_game):
         """初始化飞船并设置其初始位置"""
         self.screen = ai_game.screen
         self.settings = ai_game.settings
@@ -16,7 +17,7 @@ class Ship:
         self.image = pygame.image.load('images/ship.bmp')
         self.rect = self.image.get_rect()
 
-        # 对于没艘新飞船，都将其放在屏幕底部的中央
+        # 对于每艘新飞船，都将其放在屏幕底部的中央
         self.rect.midbottom = self.screen_rect.midbottom
 
         # 在飞船的属性X中存储小数值
@@ -40,6 +41,11 @@ class Ship:
     def blitme(self):
         """在指定位置绘制飞船"""
         self.screen.blit(self.image, self.rect)
+
+    def center_ship(self):
+        """让飞船在屏幕底端居中。"""
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)
 
 
 if __name__ == '__main__':
