@@ -5,6 +5,7 @@ import pygame
 
 from settings import Settings
 from game_stats import GameStats
+from scoreboard import Scoreboard
 from button import Button
 from ship import Ship
 from bullet import Bullet
@@ -33,6 +34,8 @@ class AlienInvasion:
 
         # 创建一个用于存储游戏统计信息的实例
         self.stats = GameStats(self)
+        # 创建记分牌
+        self.sb = Scoreboard(self)
 
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
@@ -74,11 +77,22 @@ class AlienInvasion:
         # collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
         # 穿甲弹
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, False, True)
+
+        if collisions:
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
+
         if not self.aliens:
             # 删除现有的所有子弹，并新建一群外星人
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
+
+            # 提高等级
+            self.stats.level += 1
+            self.sb.prep_level()
 
     def _update_aliens(self):
         """检查是否有外星人唯一屏幕边缘，并更新整群外星人的位置"""
@@ -100,6 +114,8 @@ class AlienInvasion:
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
+        # 显示得分。
+        self.sb.show_score()
 
         # 如果游戏处于非活动状态，就绘制Play按钮
         if not self.stats.game_active:
@@ -181,7 +197,8 @@ class AlienInvasion:
         elif event.key == pygame.K_q:
             sys.exit()
         elif event.key == pygame.K_SPACE:
-            self._fire_bullet()
+            if self.stats.game_active:
+                self._fire_bullet()
         elif event.key == pygame.K_s:
             self._start_game()
 
@@ -198,6 +215,9 @@ class AlienInvasion:
             # 重置游戏统计信息
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_ships()
             # 清除余下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()
@@ -218,6 +238,9 @@ class AlienInvasion:
         # 将ship_lef减1.
         self.stats.ships_left -= 1
         if self.stats.ships_left > 0:
+            # 更新记分牌。
+            self.sb.prep_ships()
+
             # 清空余下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()
